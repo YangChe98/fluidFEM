@@ -112,8 +112,7 @@ end
 % phix=diff(phi,x);
 % phiy=diff(phi,y);
 
-gaussweight=[5/9,8/9,5/9];
-gausspoint=[-sqrt(3/5),0,sqrt(3/5)];
+
 
 % local matrix A 
 % for i=1:12
@@ -189,7 +188,7 @@ for i=1:element_number
     %f2numerical=repmat(f2numerical,localbasisfunctionnumber,1);
     fvalue=f(xlocalgausspoint,ylocalgausspoint);
 
-    Alocal=nu*detJ*(C(1,1)*(A11reference+C11reference)+C(1,2)*(A12reference+C12reference.'+C12reference+C12reference.')+C(2,2)*(A22reference+C22reference));
+    Alocal=nu*detJ*(C(1,1)*(A11reference+C11reference)+C(1,2)*(A12reference+A12reference.'+C12reference+C12reference.')+C(2,2)*(A22reference+C22reference));
     Blocal=detJ*(invJ(1,1)*B11reference+invJ(2,1)*B12reference+invJ(1,2)*B21reference+invJ(2,2)*B22reference);
      
     %rightlocal=detJ*(f1numerical.*phi1gaussvalue+f2numerical.*phi2gaussvalue).*gaussweight2d;
@@ -265,6 +264,11 @@ yplot=0:(1/(2*y_n)):1;
 
 [xplot,yplot]=meshgrid(xplot,yplot);
 [uvalue,vvalue,pvalue]=plotvalue(xplot,yplot,x_n,y_n,ubasis_function_number,node_number,phi,element_coordinate,node_coordinate,basisfunctionweight);
+figure(1)
+streamslice(xplot,yplot,uvalue,vvalue)
+figure(2)
+plot3(xplot,yplot,pvalue)
+colorbar
 % [xplotn,yplotn]=size(xplot);
 % 
 % syms x y
