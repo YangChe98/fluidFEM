@@ -2,6 +2,10 @@ function [B11reference,B12reference,B21reference,B22reference]=referencematrixB(
 
 syms x y;
 
+B11reference=zeros(12,1);
+B12reference=zeros(12,1);
+B21reference=zeros(12,1);
+B22reference=zeros(12,1);
 for i=1:12
         B11=int(matlabFunction(phix(1,i),'vars',[x y]),x,-1,1);
         B1=int(matlabFunction(B11,'var',[y]),y,-1,1);

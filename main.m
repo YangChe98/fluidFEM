@@ -8,14 +8,15 @@ syms xi eta
 %f1=1;
 %f2=1;
 g1= [0,0];
+% g2=[1,0];
 g2=[1,0];
 
 x_max=1;
 x_min=0;
 y_max=1;
 y_min=0;
-x_n=1e2;
-y_n=1e2;
+x_n=100;
+y_n=100;
 localbasisfunctionnumber=12;
 node_number=(x_n+1)*(y_n+1);
 element_number=x_n*y_n;
@@ -46,6 +47,23 @@ for i=1:m
          node_coordinate(i,5)=0; 
     end
 end
+
+% for i=1:m
+%     if (node_coordinate(i,2)==1)
+%          node_coordinate(i,3)=1;  % 1 = boundary 0= interior
+%          node_coordinate(i,4)=g2(1,1);% Dirichlet boundary
+%          node_coordinate(i,5)=g2(1,2);
+%        
+%     elseif (node_coordinate(i,2)==0||node_coordinate(i,1)==0||node_coordinate(i,1)==1)
+%          node_coordinate(i,3)=1;  % 1 = boundary 0= interior
+%          node_coordinate(i,4)=g1(1,1);  % Dirichlet boundary
+%          node_coordinate(i,5)=g1(1,2); 
+%     else
+%         node_coordinate(i,3)=0;  % 1 = boundary 0= interior
+%          node_coordinate(i,4)=0;  % Dirichlet boundary
+%          node_coordinate(i,5)=0; 
+%     end
+% end
 
 element_coordinate11=(1:x_n)';
 edge_coordinate11=(1:x_n)';
@@ -175,6 +193,7 @@ for i=1:element_number
     J=[(local_coordinate2-local_coordinate1).'/2,(local_coordinate3-local_coordinate2).'/2];
     Fkb=(local_coordinate1+local_coordinate3).'/2;
     detJ=det(J);
+    detJ=abs(detJ);
     invJ=inv(J);
     invJT=invJ.';
     C=invJ*invJT;
@@ -194,7 +213,7 @@ for i=1:element_number
     %rightlocal=detJ*(f1numerical.*phi1gaussvalue+f2numerical.*phi2gaussvalue).*gaussweight2d;
     rightlocal=detJ*(fvalue(1,:).*phi1gaussvalue+fvalue(2,:).*phi2gaussvalue).*gaussweight2d;
     rightlocal=sum(rightlocal,2);
-
+    
     for j=1:localbasisfunctionnumber
 
         if j<=8
@@ -230,6 +249,7 @@ for i=1:element_number
   
 end
 
+
 Atotal=[A,B;B.',zeros(pbasis_function_number,pbasis_function_number)];
 for i=1:node_number
     if(node_coordinate(i,3)==1)
@@ -245,6 +265,20 @@ for i=1:node_number
     end
 
 end
+% for i=1:node_number
+%     if(node_coordinate(i,3)==1)
+%         
+% 
+%         Atotal(2*i,:)=0;
+%         Atotal(2*i,2*i)=1;
+% 
+%         Atotal(2*i-1,:)=0;
+%         Atotal(2*i-1,2*i-1)=1;
+%         right(2*i-1,1)=node_coordinate(i,4);
+%         right(2*i,1)=node_coordinate(i,5);
+%     end
+% end
+% 
 for i=1:edge_number
     if(edge_dirichlet(i,1)==1)
         right=right-Atotal(:,2*node_number+i)*edge_dirichlet(i,2);
@@ -255,21 +289,64 @@ for i=1:edge_number
     end
 
 end
+% for i=1:edge_number
+%     if(edge_dirichlet(i,1)==1)
+%         Atotal(2*node_number+i,:)=0;
+%         Atotal(2*node_number+i,2*node_number+i)=1;
+%         right(2*node_number+i,1)=edge_dirichlet(i,2);
+%     end
+% 
+% end
+
 
 basisfunctionweight=Atotal\right;
 
 
-xplot=0:(1/(2*x_n)):1;
-yplot=0:(1/(2*y_n)):1;
+xplot=0:(1/(3*x_n)):1;
+yplot=0:(1/(3*y_n)):1;
 
 [xplot,yplot]=meshgrid(xplot,yplot);
+% xplot=[];
+% yplot=[];
+% for i=1:element_number
+%      local_coordinate1=node_coordinate(element_coordinate(i,1),1:2);
+%     local_coordinate2=node_coordinate(element_coordinate(i,2),1:2);
+%     local_coordinate3=node_coordinate(element_coordinate(i,3),1:2);
+%     local_coordinate4=node_coordinate(element_coordinate(i,4),1:2);
+%     
+% 
+%     xplot=[xplot,local_coordinate1(1,1)+1/(3*x_n),local_coordinate1(1,1)+2/(3*x_n),local_coordinate1(1,1)+1/(3*x_n),local_coordinate1(1,1)+2/(3*x_n)];
+%     yplot=[yplot,local_coordinate1(1,2)+1/(3*y_n),local_coordinate1(1,2)+1/(3*y_n),local_coordinate1(1,2)+2/(3*y_n),local_coordinate1(1,2)+2/(3*y_n)];
+% end
+
 [uvalue,vvalue,pvalue]=plotvalue(xplot,yplot,x_n,y_n,ubasis_function_number,node_number,phi,element_coordinate,node_coordinate,basisfunctionweight);
 figure(1)
-streamslice(xplot,yplot,uvalue,vvalue)
+%quiver(xplot,yplot,uvalue,vvalue)
+streamline(xplot,yplot,uvalue,vvalue)
+%streamslice(xplot,yplot,uvalue,vvalue)
 figure(2)
 plot3(xplot,yplot,pvalue)
 colorbar
-% [xplotn,yplotn]=size(xplot);
+figure(3)
+plot3(xplot,yplot,uvalue)
+colorbar
+figure(4)
+plot3(xplot,yplot,vvalue)
+colorbar
+% uvalueana=sin(pi*xplot)+sin(pi*yplot);
+% vvalueana=-pi*cos(pi*xplot).*yplot;
+% pvalueana=sin(2*pi*xplot)+sin(2*pi*yplot);
+% figure(5)
+% plot3(xplot,yplot,pvalueana)
+% colorbar
+% figure(6)
+% plot3(xplot,yplot,uvalueana)
+% colorbar
+% figure(7)
+% plot3(xplot,yplot,vvalueana)
+% figure(8)
+% streamslice(xplot,yplot,uvalueana,vvalueana)
+% % [xplotn,yplotn]=size(xplot);
 % 
 % syms x y
 % phi11=matlabFunction(phi(1,1),'vars',[x y]);

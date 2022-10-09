@@ -2,7 +2,13 @@ function [A11reference,A12reference,A22reference,C11reference,C12reference,C22re
 
 syms x y;
 
+A11reference=zeros(12,12);
+A12reference=zeros(12,12);
+A22reference=zeros(12,12);
 
+C11reference=zeros(12,12);
+C12reference=zeros(12,12);
+C22reference=zeros(12,12);
 % reference matrix A 
 for i=1:12
     for j=1:12

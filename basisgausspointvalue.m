@@ -1,7 +1,7 @@
 function [phi1gaussvalue,phi2gaussvalue]=basisgausspointvalue(phi)
 
 syms x y;
-gaussweight=[5/9,8/9,5/9];
+
 gausspoint=[-sqrt(3/5),0,sqrt(3/5)];
 
 xgausspoint2d=repmat(gausspoint,3,1);
