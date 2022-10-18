@@ -7,16 +7,18 @@ nu=1;
 syms xi eta 
 %f1=1;
 %f2=1;
-g1= [0,0];
-% g2=[1,0];
-g2=[1,0];
+% g1= [sin(pi*xi),0];
+% % g2=[1,0];
+% g2=[sin(pi*xi),-pi*cos(pi*xi)];
+% g3=[sin(pi*eta),pi*eta];
+% g4=[sin(pi*eta),-pi*eta];
 
 x_max=1;
 x_min=0;
 y_max=1;
 y_min=0;
-x_n=100;
-y_n=100;
+x_n=3;
+y_n=4;
 localbasisfunctionnumber=12;
 node_number=(x_n+1)*(y_n+1);
 element_number=x_n*y_n;
@@ -32,21 +34,61 @@ X=reshape(X',[],1);
 Y=reshape(Y',[],1);
 node_coordinate=[X,Y];
 [m,n]=size(X);
+
 for i=1:m
-    if(node_coordinate(i,2)==0||node_coordinate(i,1)==0||node_coordinate(i,1)==1)
+    if(node_coordinate(i,2)==0||node_coordinate(i,1)==0||node_coordinate(i,2)==1||node_coordinate(i,1)==1)
         node_coordinate(i,3)=1;  % 1 = boundary 0= interior
-         node_coordinate(i,4)=g1(1,1);  % Dirichlet boundary
-         node_coordinate(i,5)=g1(1,2); 
-    elseif(node_coordinate(i,2)==1)
-         node_coordinate(i,3)=1;  % 1 = boundary 0= interior
-         node_coordinate(i,4)=g2(1,1);% Dirichlet boundary
-         node_coordinate(i,5)=g2(1,2);
+        node_coordinate(i,4)=function_u(node_coordinate(i,1),node_coordinate(i,2));
+        node_coordinate(i,5)=function_v(node_coordinate(i,1),node_coordinate(i,2));
     else
         node_coordinate(i,3)=0;  % 1 = boundary 0= interior
-         node_coordinate(i,4)=0;  % Dirichlet boundary
-         node_coordinate(i,5)=0; 
+        node_coordinate(i,4)=0;
+        node_coordinate(i,5)=0;
     end
 end
+% for i=1:m
+%     if(node_coordinate(i,2)==0)
+%         node_coordinate(i,3)=1;  % 1 = boundary 0= interior
+%         nodevalue=double(subs(g1,xi,node_coordinate(i,1)));
+%          node_coordinate(i,4)=nodevalue(1,1);% Dirichlet boundary
+%          node_coordinate(i,5)=nodevalue(1,2);
+%     elseif(node_coordinate(i,1)==0)
+%         node_coordinate(i,3)=1; 
+%         nodevalue=double(subs(g4,eta,node_coordinate(i,2)));
+%          node_coordinate(i,4)=nodevalue(1,1);% Dirichlet boundary
+%          node_coordinate(i,5)=nodevalue(1,2);
+%     elseif(node_coordinate(i,2)==1)
+%          node_coordinate(i,3)=1;  % 1 = boundary 0= interior
+%          nodevalue=double(subs(g2,xi,node_coordinate(i,1)));
+%          node_coordinate(i,4)=nodevalue(1,1);% Dirichlet boundary
+%          node_coordinate(i,5)=nodevalue(1,2);
+%     elseif(node_coordinate(i,1)==1)
+%         node_coordinate(i,3)=1;  % 1 = boundary 0= interior
+%          nodevalue=double(subs(g3,eta,node_coordinate(i,2)));
+%          node_coordinate(i,4)=nodevalue(1,1);% Dirichlet boundary
+%          node_coordinate(i,5)=nodevalue(1,2);
+%     else
+%         node_coordinate(i,3)=0;  % 1 = boundary 0= interior
+%          node_coordinate(i,4)=0;  % Dirichlet boundary
+%          node_coordinate(i,5)=0; 
+%     end
+% end
+% % 
+% for i=1:m
+%     if(node_coordinate(i,2)==0||node_coordinate(i,1)==0||node_coordinate(i,1)==1)
+%         node_coordinate(i,3)=1;  % 1 = boundary 0= interior
+%          node_coordinate(i,4)=g1(1,1);  % Dirichlet boundary
+%          node_coordinate(i,5)=g1(1,2); 
+%     elseif(node_coordinate(i,2)==1)
+%          node_coordinate(i,3)=1;  % 1 = boundary 0= interior
+%          node_coordinate(i,4)=g2(1,1);% Dirichlet boundary
+%          node_coordinate(i,5)=g2(1,2);
+%     else
+%         node_coordinate(i,3)=0;  % 1 = boundary 0= interior
+%          node_coordinate(i,4)=0;  % Dirichlet boundary
+%          node_coordinate(i,5)=0; 
+%     end
+% end
 
 % for i=1:m
 %     if (node_coordinate(i,2)==1)
@@ -65,6 +107,9 @@ end
 %     end
 % end
 
+
+
+
 element_coordinate11=(1:x_n)';
 edge_coordinate11=(1:x_n)';
 edge_coordinate1=[];
@@ -81,25 +126,58 @@ element_coordinate=[element_coordinate1,element_coordinate1+1,element_coordinate
 
 edge_dirichlet=zeros(edge_number,2);
 
+g1=[function_u(xi,0),function_v(xi,0)];
+g2=[function_u(xi,1),function_v(xi,1)];
+g3=[function_u(1,eta),function_v(1,eta)];
+g4=[function_u(0,eta),function_v(0,eta)];
 for i=1:x_n
-    intg1=g1*[0;-1]*deltax;
-    intg2=g2*[0;1]*deltax;
+    intg1=int(g1*[0;-1],xi,(i-1)/x_n,i/x_n);
+    intg2=int(g2*[0;1],xi,(i-1)/x_n,i/x_n);
     edge_dirichlet(i,1)=1;
-    edge_dirichlet(i,2)=intg1;
+    edge_dirichlet(i,2)=double(intg1);
      edge_dirichlet(edge_number-i+1,1)=1;
-    edge_dirichlet(edge_number-i+1,2)=intg2;
+    edge_dirichlet(x_n*(y_n+1)+y_n*(x_n+1)-x_n+i,2)=double(intg2);
     
 end
 for i=1:y_n
-    intg1=g1*[-1;0]*deltax;
-    intg2=g1*[1;0]*deltax;
+    intg1=int(g4*[-1;0],eta,(i-1)/y_n,i/y_n);
+    intg2=int(g3*[1;0],eta,(i-1)/y_n,i/y_n);
     edgedirichletnumber1=i*x_n+(i-1)*(x_n+1)+1;
     edge_dirichlet(edgedirichletnumber1,1)=1;
-    edge_dirichlet(edgedirichletnumber1,2)=intg1;
+    edge_dirichlet(edgedirichletnumber1,2)=double(intg1);
      edge_dirichlet(edgedirichletnumber1+x_n,1)=1;
-    edge_dirichlet(edgedirichletnumber1+x_n,2)=intg2;
+    edge_dirichlet(edgedirichletnumber1+x_n,2)=double(intg2);
 end
 
+
+
+element_boundary=zeros(element_number,1);
+for i=1:x_n
+    coordinate1=element_coordinate(i,1);
+    x1=node_coordinate(coordinate1,1);
+    y1=node_coordinate(coordinate1,2);
+    element_boundary(i,1)=1;
+    element_boundary(i,2)=function_p(x1+1/(2*x_n),y1+1/(2*y_n));
+
+    coordinate1=element_coordinate(i+(y_n-1)*x_n,1);
+    x1=node_coordinate(coordinate1,1);
+    y1=node_coordinate(coordinate1,2);
+    element_boundary(i+(y_n-1)*x_n,1)=1;
+    element_boundary(i+(y_n-1)*x_n,2)=function_p(x1+1/(2*x_n),y1+1/(2*y_n));
+end
+for i=1:y_n
+       coordinate1=element_coordinate((i-1)*x_n+1,1);
+    x1=node_coordinate(coordinate1,1);
+    y1=node_coordinate(coordinate1,2);
+   element_boundary( (i-1)*x_n+1,1)=1;
+ element_boundary( (i-1)*x_n+1,2)=function_p(x1+1/(2*x_n),y1+1/(2*y_n));
+
+      coordinate1=element_coordinate(i*x_n,1);
+    x1=node_coordinate(coordinate1,1);
+    y1=node_coordinate(coordinate1,2);
+    element_boundary( i*x_n,1)=1;
+     element_boundary( i*x_n,1)=function_p(x1+1/(2*x_n),y1+1/(2*y_n));
+end
 
 
 % phi1=@(x,y)[1-x-y+x.*y-3*y.*(1-x).*(1-y);0];
@@ -183,6 +261,8 @@ gaussweight2d=repmat(gaussweight2d,localbasisfunctionnumber,1);
 A=sparse(ubasis_function_number,ubasis_function_number);
 B=sparse(ubasis_function_number,pbasis_function_number);
 right=sparse(ubasis_function_number+pbasis_function_number,1);
+imatrix=[];
+
 %%%%%%%%%%%%gengerate  matrix A   B right
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 for i=1:element_number 
@@ -239,6 +319,12 @@ for i=1:element_number
                 kglobal=2*node_number+element_coordinate(i,kglobal1+4);
               
             end
+            aa=[i;
+            j;
+            k;
+            jglobal;
+            kglobal];
+            imatrix=[imatrix,aa];
             A(jglobal,kglobal)=A(jglobal,kglobal)+Alocal(j,k);
         end
         
@@ -289,6 +375,13 @@ for i=1:edge_number
     end
 
 end
+
+ right=right-Atotal(:,ubasis_function_number+1)*element_boundary(1,2);
+        Atotal(:,ubasis_function_number+1)=0;
+        Atotal(ubasis_function_number+1,:)=0;
+        Atotal(ubasis_function_number+1,ubasis_function_number+1)=1;
+        right(ubasis_function_number+1,1)=element_boundary(1,2);
+ 
 % for i=1:edge_number
 %     if(edge_dirichlet(i,1)==1)
 %         Atotal(2*node_number+i,:)=0;
@@ -302,8 +395,11 @@ end
 basisfunctionweight=Atotal\right;
 
 
-xplot=0:(1/(3*x_n)):1;
-yplot=0:(1/(3*y_n)):1;
+% xplot=0:(1/(3*x_n)):1;
+% yplot=0:(1/(3*y_n)):1;
+xplot=0:(1/(x_n)):1;
+ yplot=0:(1/(y_n)):1;
+
 
 [xplot,yplot]=meshgrid(xplot,yplot);
 % xplot=[];
@@ -319,13 +415,20 @@ yplot=0:(1/(3*y_n)):1;
 %     yplot=[yplot,local_coordinate1(1,2)+1/(3*y_n),local_coordinate1(1,2)+1/(3*y_n),local_coordinate1(1,2)+2/(3*y_n),local_coordinate1(1,2)+2/(3*y_n)];
 % end
 
-[uvalue,vvalue,pvalue]=plotvalue(xplot,yplot,x_n,y_n,ubasis_function_number,node_number,phi,element_coordinate,node_coordinate,basisfunctionweight);
+% [uvalue,vvalue,pvalue]=plotvalue(xplot,yplot,x_n,y_n,ubasis_function_number,node_number,phi,element_coordinate,node_coordinate,basisfunctionweight);
+uvalue=basisfunctionweight(1:2:node_number*2,1);
+uvalue=reshape(uvalue,size(xplot));
+vvalue=basisfunctionweight(2:2:node_number*2,1);
+vvalue=reshape(vvalue,size(xplot));
+pvalue=zeros(pbasis_function_number,1);
+pvalue=basisfunctionweight(ubasis_function_number+1:ubasis_function_number+pbasis_function_number,1);
+% pvalue=reshape(pvalue,size(xplot));
 figure(1)
 %quiver(xplot,yplot,uvalue,vvalue)
 streamline(xplot,yplot,uvalue,vvalue)
 %streamslice(xplot,yplot,uvalue,vvalue)
 figure(2)
-plot3(xplot,yplot,pvalue)
+% plot3(xplot,yplot,pvalue)
 colorbar
 figure(3)
 plot3(xplot,yplot,uvalue)
@@ -333,19 +436,19 @@ colorbar
 figure(4)
 plot3(xplot,yplot,vvalue)
 colorbar
-% uvalueana=sin(pi*xplot)+sin(pi*yplot);
-% vvalueana=-pi*cos(pi*xplot).*yplot;
-% pvalueana=sin(2*pi*xplot)+sin(2*pi*yplot);
-% figure(5)
-% plot3(xplot,yplot,pvalueana)
-% colorbar
-% figure(6)
-% plot3(xplot,yplot,uvalueana)
-% colorbar
-% figure(7)
-% plot3(xplot,yplot,vvalueana)
-% figure(8)
-% streamslice(xplot,yplot,uvalueana,vvalueana)
+uvalueana=function_u(xplot,yplot);
+vvalueana=function_v(xplot,yplot);
+pvalueana=function_p(xplot,yplot);
+figure(5)
+plot3(xplot,yplot,pvalueana)
+colorbar
+figure(6)
+plot3(xplot,yplot,uvalueana)
+colorbar
+figure(7)
+plot3(xplot,yplot,vvalueana)
+figure(8)
+streamslice(xplot,yplot,uvalueana,vvalueana)
 % % [xplotn,yplotn]=size(xplot);
 % 
 % syms x y
