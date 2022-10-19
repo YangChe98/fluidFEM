@@ -17,8 +17,8 @@ x_max=1;
 x_min=0;
 y_max=1;
 y_min=0;
-x_n=3;
-y_n=4;
+x_n=32;
+y_n=32;
 localbasisfunctionnumber=12;
 node_number=(x_n+1)*(y_n+1);
 element_number=x_n*y_n;
@@ -36,7 +36,7 @@ node_coordinate=[X,Y];
 [m,n]=size(X);
 
 for i=1:m
-    if(node_coordinate(i,2)==0||node_coordinate(i,1)==0||node_coordinate(i,2)==1||node_coordinate(i,1)==1)
+    if(node_coordinate(i,2)==y_min||node_coordinate(i,1)==x_min||node_coordinate(i,2)==y_max||node_coordinate(i,1)==x_min)
         node_coordinate(i,3)=1;  % 1 = boundary 0= interior
         node_coordinate(i,4)=function_u(node_coordinate(i,1),node_coordinate(i,2));
         node_coordinate(i,5)=function_v(node_coordinate(i,1),node_coordinate(i,2));
@@ -170,7 +170,8 @@ for i=1:y_n
     x1=node_coordinate(coordinate1,1);
     y1=node_coordinate(coordinate1,2);
    element_boundary( (i-1)*x_n+1,1)=1;
- element_boundary( (i-1)*x_n+1,2)=function_p(x1+1/(2*x_n),y1+1/(2*y_n));
+%  element_boundary( (i-1)*x_n+1,2)=function_p(x1+1/(2*x_n),y1+1/(2*y_n));
+  element_boundary( (i-1)*x_n+1,2)=function_p(x1,y1);
 
       coordinate1=element_coordinate(i*x_n,1);
     x1=node_coordinate(coordinate1,1);
@@ -229,9 +230,9 @@ end
 load A11reference.mat;
 load A12reference.mat;
 load A22reference.mat;
-load C11reference.mat;
-load C12reference.mat;
-load C22reference.mat;
+% load C11reference.mat;
+% load C12reference.mat;
+% load C22reference.mat;
 load B11reference.mat;
 load B12reference.mat;
 load B22reference.mat;
@@ -287,7 +288,7 @@ for i=1:element_number
     %f2numerical=repmat(f2numerical,localbasisfunctionnumber,1);
     fvalue=f(xlocalgausspoint,ylocalgausspoint);
 
-    Alocal=nu*detJ*(C(1,1)*(A11reference+C11reference)+C(1,2)*(A12reference+A12reference.'+C12reference+C12reference.')+C(2,2)*(A22reference+C22reference));
+    Alocal=nu*detJ*(C(1,1)*(A11reference)+C(1,2)*(A12reference+A12reference.')+C(2,2)*(A22reference));
     Blocal=detJ*(invJ(1,1)*B11reference+invJ(2,1)*B12reference+invJ(1,2)*B21reference+invJ(2,2)*B22reference);
      
     %rightlocal=detJ*(f1numerical.*phi1gaussvalue+f2numerical.*phi2gaussvalue).*gaussweight2d;
@@ -342,9 +343,10 @@ for i=1:node_number
         right=right-Atotal(:,2*i-1)*node_coordinate(i,4)-Atotal(:,2*i)*node_coordinate(i,5);
         Atotal(:,2*i)=0;
         Atotal(2*i,:)=0;
-        Atotal(2*i,2*i)=1;
+        
         Atotal(:,2*i-1)=0;
         Atotal(2*i-1,:)=0;
+        Atotal(2*i,2*i)=1;
         Atotal(2*i-1,2*i-1)=1;
         right(2*i-1,1)=node_coordinate(i,4);
         right(2*i,1)=node_coordinate(i,5);
